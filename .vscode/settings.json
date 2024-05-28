@@ -2,10 +2,11 @@
     "cSpell.words": [
         "Buildx",
         "colab",
+        "CUDA",
         "distroless",
         "Dockerfiles",
+        "gesen2egee",
         "gplv",
-        "llava",
-        "gesen2egee"
+        "llava"
     ]
 }

@@ -1,40 +1,64 @@
 # docker-MoE-LLaVA
 
-This is the docker image for [gesen2egee/MoE-LLaVA-hf](https://github.com/gesen2egee/MoE-LLaVA-hf), a script that uses [MoE-LLaVA](https://github.com/PKU-YuanGroup/MoE-LLaVA) technology to predict descriptions for images. It is designed to prepare the training set caption for stable diffusion model training.
+This is the docker image for [gesen2egee/MoE-LLaVA-hf](https://github.com/gesen2egee/MoE-LLaVA-hf), a script that uses [MoE-LLaVA](https://github.com/PKU-YuanGroup/MoE-LLaVA) to describe images. It is designed to prepare the training set caption for stable diffusion model training.
 
 Get the Dockerfile at [GitHub](https://github.com/jim60105/docker-MoE-LLaVA), or pull the image from [ghcr.io](https://ghcr.io/jim60105/moe-llava).
 
-## Usage Command
+## 🚀 Get your Docker ready for GPU support
 
-Mount the current directory as `/dataset` and run the script with additional input arguments.
+### Windows
 
-> [!NOTE]  
-> Remember to prepend `--` before the arguments.
+Once you have installed [**Docker Desktop**](https://www.docker.com/products/docker-desktop/), [**CUDA Toolkit**](https://developer.nvidia.com/cuda-downloads), [**NVIDIA Windows Driver**](https://www.nvidia.com.tw/Download/index.aspx), and ensured that your Docker is running with [**WSL2**](https://docs.docker.com/desktop/wsl/#turn-on-docker-desktop-wsl-2), you are ready to go.
+
+Here is the official documentation for further reference.  
+<https://docs.nvidia.com/cuda/wsl-user-guide/index.html#nvidia-compute-software-support-on-wsl-2>
+<https://docs.docker.com/desktop/wsl/use-wsl/#gpu-support>
+
+### Linux, OSX
+
+Install an NVIDIA GPU Driver if you do not already have one installed.  
+<https://docs.nvidia.com/datacenter/tesla/tesla-installation-notes/index.html>
+
+Install the NVIDIA Container Toolkit with this guide.  
+<https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html>
+
+## 📦 Available Pre-built Image
 
 ```bash
 docker run --gpus all -it -v ".:/dataset" ghcr.io/jim60105/moe-llava -- [arguments]
-
 # Example
 docker run --gpus all -it -v ".:/dataset" ghcr.io/jim60105/moe-llava -- --moe --force --caption_style='mixed' --folder_name --modify_prompt
 ```
 
+Mount the current directory as `/dataset` and run the script with additional input arguments.
+
 The `[arguments]` placeholder should be replaced with the [arguments for the script](https://github.com/gesen2egee/MoE-LLaVA-hf/blob/main/predict.py#L354-L362). Check the [original colab notebook](https://github.com/gesen2egee/MoE-LLaVA-hf/blob/main/MoE_LLaVA_jupyter.ipynb) for more information.
 
-### Build Command
+> [!NOTE]  
+> Remember to prepend `--` before the arguments.
+
+## ⚡️ Preserve the download cache for the models
+
+The pre-built image does not include models. The models will be downloaded at the runtime.  
+You can mount the `/.cache` to share model caches between containers.
+
+```bash
+docker run --gpus all -it -v ".:/dataset" -v "moe_cache:/.cache" ghcr.io/jim60105/moe-llava -- --moe --force --caption_style='mixed' --folder_name --modify_prompt
+```
+
+## 🛠️ Building the Image
 
 > [!IMPORTANT]  
 > Clone the Git repository recursively to include submodules:  
 > `git clone --recursive https://github.com/jim60105/docker-MoE-LLaVA.git`
 
+You can build the image which includes the model by specifying the `MODEL_PATH` build argument and targeting to the final stage.
+
 ```bash
-docker build -t moe-llava .
+docker build -t moe-llava --target final --build-arg MODEL_PATH=LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384 .
 ```
 
-> [!NOTE]  
-> If you are using an earlier version of the docker client, it is necessary to [enable the BuildKit mode](https://docs.docker.com/build/buildkit/#getting-started) when building the image. This is because I used the `COPY --link` feature which enhances the build performance and was introduced in Buildx v0.8.  
-> With the Docker Engine 23.0 and Docker Desktop 4.19, Buildx has become the default build client. So you won't have to worry about this when using the latest version.
-
-## LICENSE
+## 📝 LICENSE
 
 > [!NOTE]  
 > The main program, [PKU-YuanGroup/MoE-LLaVA](https://github.com/PKU-YuanGroup/MoE-LLaVA) and [the predict script](https://github.com/gesen2egee/MoE-LLaVA-hf/blob/main/LICENSE), is distributed under [Apache License 2.0](https://github.com/PKU-YuanGroup/MoE-LLaVA/blob/main/LICENSE).  
