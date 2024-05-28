@@ -98,7 +98,7 @@ RUN --mount=type=cache,id=apt-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/v
     --mount=type=cache,id=aptlists-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/var/lib/apt/lists \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-    libgoogle-perftools-dev libjpeg62
+    libgoogle-perftools-dev libjpeg62 python3-opencv
 
 # Create user
 ARG UID
