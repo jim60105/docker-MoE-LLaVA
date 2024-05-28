@@ -1,4 +1,4 @@
-# Project Name
+# docker-MoE-LLaVA
 
 This is the docker image for [gesen2egee/MoE-LLaVA-hf](https://github.com/gesen2egee/MoE-LLaVA-hf), a script that uses [MoE-LLaVA](https://github.com/PKU-YuanGroup/MoE-LLaVA) technology to predict descriptions for images. It is designed to prepare the training set caption for stable diffusion model training.
 
@@ -14,7 +14,7 @@ docker run -it -v ".:/dataset" ghcr.io/jim60105/moe-llava [options]
 docker run -it -v ".:/dataset" ghcr.io/jim60105/moe-llava --moe --force --caption_style='mixed' --folder_name --modify_prompt
 ```
 
-The `[options]` placeholder should be replaced with the options and [arguments for the script](/predict.py#L354-L362). Check the [original collab notebook](/MoE-LLaVA-hf/blob/main/MoE_LLaVA_jupyter.ipynb) for more information.
+The `[options]` placeholder should be replaced with the options and [arguments for the script](https://github.com/gesen2egee/MoE-LLaVA-hf/blob/main/predict.py#L354-L362). Check the [original collab notebook](https://github.com/gesen2egee/MoE-LLaVA-hf/blob/main/MoE_LLaVA_jupyter.ipynb) for more information.
 
 ### Build Command
 
@@ -23,7 +23,7 @@ The `[options]` placeholder should be replaced with the options and [arguments f
 > `git clone --recursive https://github.com/jim60105/docker-MoE-LLaVA.git`
 
 ```bash
-docker build -f Dockerfile -t MoE-LLaVA .
+docker build -t moe-llava .
 ```
 
 > [!NOTE]  
@@ -37,7 +37,7 @@ docker build -f Dockerfile -t MoE-LLaVA .
 > Please consult their repository for access to the source code and licenses.  
 > The following is the license for the Dockerfiles and CI workflows in this repository.
 
-<img src="https://github.com/jim60105/docker-MoE-LLaVA/assets/16995691/ea799bbb-d531-4514-baee-13874322ec48" alt="gplv3" width="300" />
+<img src="https://github.com/jim60105/docker-MoE-LLaVA/assets/16995691/65f76d01-a00b-4a93-86b6-a06bc3667869" alt="gplv3" width="300" />
 
 [GNU GENERAL PUBLIC LICENSE Version 3](LICENSE)
 
