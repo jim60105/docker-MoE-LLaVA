@@ -35,6 +35,18 @@ jobs:
           git checkout main && \
           git reset --hard origin/main
 
+      # We require additional space due to the large size of our image. (~10GB)
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
       - name: Docker meta:${{ github.ref_name }}
         id: meta
         uses: docker/metadata-action@v5
