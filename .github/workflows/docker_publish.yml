@@ -54,14 +54,15 @@ jobs:
           images: ghcr.io/${{ github.repository_owner }}/moe-llava
           tags: |
             no_model
+            latest
 
-      - name: Docker meta:${{ github.ref_name }}
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository_owner }}/moe-llava
-          flavor: |
-            latest=auto
+      # - name: Docker meta:${{ github.ref_name }}
+      #   id: meta
+      #   uses: docker/metadata-action@v5
+      #   with:
+      #     images: ghcr.io/${{ github.repository_owner }}/moe-llava
+      #     flavor: |
+      #       latest=auto
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -96,22 +97,23 @@ jobs:
           sbom: true
           provenance: true
 
-      - name: Build and push:final
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          target: final
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            VERSION=${{ github.ref_name }}
-            RELEASE=${{ github.run_number }}
-            MODEL_PATH=LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384
-          platforms: linux/amd64
-          # Cache to regietry instead of gha to avoid the capacity limit.
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/moe-llava:cache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/moe-llava:cache,mode=max
-          sbom: true
-          provenance: true
+      ## Too large to build on GitHub Free Runner
+      # - name: Build and push:final
+      #   uses: docker/build-push-action@v5
+      #   with:
+      #     context: .
+      #     file: ./Dockerfile
+      #     push: true
+      #     target: final
+      #     tags: ${{ steps.meta.outputs.tags }}
+      #     labels: ${{ steps.meta.outputs.labels }}
+      #     build-args: |
+      #       VERSION=${{ github.ref_name }}
+      #       RELEASE=${{ github.run_number }}
+      #       MODEL_PATH=LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384
+      #     platforms: linux/amd64
+      #     # Cache to regietry instead of gha to avoid the capacity limit.
+      #     cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/moe-llava:cache
+      #     cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/moe-llava:cache,mode=max
+      #     sbom: true
+      #     provenance: true
