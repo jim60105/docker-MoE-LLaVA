@@ -11,7 +11,7 @@ ARG HF_HOME=${CACHE_HOME}/huggingface
 ########################################
 # Build stage
 ########################################
-FROM python:3.10-slim as build
+FROM python:3.10 as build
 
 # RUN mount cache for multi-arch: https://github.com/docker/buildx/issues/549#issuecomment-1788297892
 ARG TARGETARCH
@@ -20,7 +20,7 @@ ARG TARGETVARIANT
 WORKDIR /source
 
 # Install under /root/.local
-ENV PIP_USER="true"
+ARG PIP_USER="true"
 ARG PIP_NO_WARN_SCRIPT_LOCATION=0
 ARG PIP_ROOT_USER_ACTION="ignore"
 ARG PIP_NO_COMPILE="true"
@@ -30,7 +30,7 @@ ARG PIP_DISABLE_PIP_VERSION_CHECK="true"
 RUN --mount=type=cache,id=apt-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/var/cache/apt \
     --mount=type=cache,id=aptlists-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/var/lib/apt/lists \
     apt-get update && apt-get install -y --no-install-recommends \
-    git
+    libopenmpi-dev openmpi-bin
 
 # Install large requirements
 RUN --mount=type=cache,id=pip-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/root/.cache/pip \
@@ -57,8 +57,6 @@ ARG TARGETPLATFORM
 RUN --mount=type=cache,id=apt-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/var/cache/apt \
     --mount=type=cache,id=aptlists-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/var/lib/apt/lists \
     if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
-    apt-get install -y --no-install-recommends \
-    zlib1g-dev libjpeg62-turbo-dev build-essential && \
     pip uninstall -y pillow && \
     CC="cc -mavx2" pip install -U --force-reinstall pillow-simd; \
     fi
@@ -100,7 +98,7 @@ RUN --mount=type=cache,id=apt-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/v
     --mount=type=cache,id=aptlists-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/var/lib/apt/lists \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-    libgoogle-perftools-dev libjpeg62 libopenmpi-dev openmpi-bin
+    libgoogle-perftools-dev libjpeg62
 
 # Create user
 ARG UID
