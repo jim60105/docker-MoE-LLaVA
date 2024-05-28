@@ -1,0 +1,77 @@
+# Check this guide for more information about publishing to ghcr.io with GitHub Actions:
+# https://docs.github.com/en/packages/managing-github-packages-using-github-actions-workflows/publishing-and-installing-a-package-with-github-actions#upgrading-a-workflow-that-accesses-ghcrio
+
+# Build the Docker image and push it to the registry
+name: docker_publish
+
+on:
+  # Trigger the workflow on tags push that match the pattern v*, for example v1.0.0
+  push:
+    branches:
+      - "master"
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Sets the permissions granted to the GITHUB_TOKEN for the actions in this job.
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Checkout submodule
+        run: |
+          cd MoE-LLaVA-hf && \
+          git fetch && \
+          git checkout main && \
+          git reset --hard origin/main
+
+      - name: Docker meta:${{ github.ref_name }}
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/moe-llava
+          flavor: |
+            latest=auto
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # You may need to manage write and read access of GitHub Actions for repositories in the container settings.
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ github.token }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          target: final
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ github.ref_name }}
+            RELEASE=${{ github.run_number }}
+          platforms: linux/amd64
+          # Cache to regietry instead of gha to avoid the capacity limit.
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/moe-llava:cache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/moe-llava:cache,mode=max
+          sbom: true
+          provenance: true
