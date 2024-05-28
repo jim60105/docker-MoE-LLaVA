@@ -20,6 +20,13 @@ services:
       - .:/dataset
       - cache:/.cache
     entrypoint: [ "dumb-init", "--", "deepspeed", "--num_gpus=1", "moellava.serve.gradio_web_server" ]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+              count: all
 
 volumes:
   cache:
