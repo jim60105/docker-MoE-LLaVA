@@ -91,7 +91,7 @@ RUN --mount=type=cache,id=apt-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/v
     # To decrease the image size, we opt to install only the necessary libraries.
     # Here is the package list for your reference: https://developer.download.nvidia.com/compute/cuda/repos/debian11/x86_64
     # !If you experience any related issues, replace the following line with `cuda-11-8` to obtain the complete CUDA package.
-    cuda-cudart-11-8=${NV_CUDA_CUDART_VERSION} libcusparse-11-8
+    cuda-cudart-11-8=${NV_CUDA_CUDART_VERSION} libcusparse-11-8 libcurand-11-8
 
 # Install runtime dependencies
 RUN --mount=type=cache,id=apt-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/var/cache/apt \
@@ -146,7 +146,7 @@ USER $UID
 
 STOPSIGNAL SIGINT
 
-ENTRYPOINT [ "dumb-init", "--", "python3", "predict.py", "/dataset" ]
+ENTRYPOINT [ "dumb-init", "--", "/bin/sh", "-c", "python3 predict.py /dataset \"$@\"" ]
 
 ARG VERSION
 ARG RELEASE
@@ -200,7 +200,8 @@ COPY --link --chown=$UID:0 --chmod=775 --from=load_model ${CACHE_HOME} ${CACHE_H
 ARG MODEL_PATH
 ENV MODEL_PATH=${MODEL_PATH}
 
-ENTRYPOINT [ "dumb-init", "--", "python3", "predict.py", "/dataset", "--model-path", "${MODEL_PATH}" ]
+ENTRYPOINT [ "dumb-init", "--", "/bin/sh", "-c", "python3 predict.py /dataset --model-path ${MODEL_PATH} \"$@\"" ]
+
 
 ARG VERSION
 ARG RELEASE
