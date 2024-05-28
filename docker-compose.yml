@@ -19,15 +19,16 @@ services:
     volumes:
       - .:/dataset
       - cache:/.cache
-    ports:
-      - "7860:7860"
+    # Gradio is launched with `demo.launch(share=True)`, so this is not working.
+    # Needs to listen on host 0.0.0.0 for Docker networking.
+    # ports:
+    #   - "7860:7860"
     entrypoint:
       - "dumb-init"
       - "--"
       - "deepspeed"
       - "--num_gpus=1"
-      - "--module"
-      - "moellava.serve.gradio_web_server"
+      - "/app/serve/gradio_web_server.py"
       - "--model-path"
       - "LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384"
     deploy:

@@ -131,6 +131,7 @@ COPY --link --chown=$UID:0 --chmod=775 MoE-LLaVA-hf/LICENSE /licenses/MoE-LLaVA.
 # https://docs.openshift.com/container-platform/4.14/openshift_images/create-images.html#use-uid_create-images
 COPY --link --chown=$UID:0 --chmod=775 --from=build /root/.local /home/$UID/.local
 COPY --link --chown=$UID:0 --chmod=775 MoE-LLaVA-hf/predict.py /app/predict.py
+COPY --link --chown=$UID:0 --chmod=775 MoE-LLaVA-hf/moellava/serve /app/serve
 
 ENV PATH="/home/$UID/.local/bin:$PATH"
 ENV PYTHONPATH="/home/$UID/.local/lib/python3.10/site-packages"
