@@ -98,7 +98,8 @@ RUN --mount=type=cache,id=apt-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/v
     --mount=type=cache,id=aptlists-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/var/lib/apt/lists \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-    libgoogle-perftools-dev libjpeg62 python3-opencv
+    libjpeg62 libopenjp2-7 libtiff6 libpng16-16 libwebp7 libwebpmux3 \
+    libgoogle-perftools-dev openmpi-bin
 
 # Create user
 ARG UID
@@ -168,7 +169,8 @@ ARG TORCH_HOME
 ARG HF_HOME
 
 # Preload model
-RUN python3 -c 'from predict import initialize_moe_model; initialize_moe_model();'
+ARG MODEL_NAME=LanguageBind/MoE-LLaVA-Phi2-2.7B-4e
+RUN python3 -c "from moellava.model.builder import load_pretrained_model; from moellava.mm_utils import get_model_name_from_path; load_pretrained_model('${MODEL_NAME}', None, get_model_name_from_path('${MODEL_NAME}'), device='cpu');"
 
 ########################################
 # Final stage with model
