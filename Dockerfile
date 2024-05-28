@@ -9,14 +9,9 @@ ARG TORCH_HOME=${CACHE_HOME}/torch
 ARG HF_HOME=${CACHE_HOME}/huggingface
 
 ########################################
-# Base stage
-########################################
-FROM python:3.10-slim as base
-
-########################################
 # Build stage
 ########################################
-FROM base as build
+FROM python:3.10-slim as build
 
 # RUN mount cache for multi-arch: https://github.com/docker/buildx/issues/549#issuecomment-1788297892
 ARG TARGETARCH
@@ -37,12 +32,13 @@ RUN --mount=type=cache,id=apt-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/v
     apt-get update && apt-get install -y --no-install-recommends \
     git
 
-# Install requirements
+# Install large requirements
 RUN --mount=type=cache,id=pip-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/root/.cache/pip \
     pip install -U --force-reinstall pip==23.3 setuptools==69.5.1 wheel && \
     pip install -U --extra-index-url https://download.pytorch.org/whl/cu118 \
     torch==2.0.1 torchvision==0.15.2
 
+# Install requirements
 RUN --mount=type=cache,id=pip-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/root/.cache/pip \
     --mount=source=MoE-LLaVA-hf/requirements.txt,target=requirements.txt \
     pip install -r requirements.txt \
@@ -70,8 +66,9 @@ RUN --mount=type=cache,id=apt-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/v
 ########################################
 # Final stage for no_model
 ########################################
-FROM base as no_model
+FROM python:3.10-slim as no_model
 
+# NVIDIA Environment before installing CUDA
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
 
@@ -117,6 +114,7 @@ ENV XDG_CACHE_HOME=${CACHE_HOME}
 ENV TORCH_HOME=${TORCH_HOME}
 ENV HF_HOME=${HF_HOME}
 
+# Create directories with correct permissions
 RUN install -d -m 775 -o $UID -g 0 /licenses && \
     install -d -m 775 -o $UID -g 0 ${CACHE_HOME}
 
