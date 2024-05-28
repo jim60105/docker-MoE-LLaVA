@@ -47,14 +47,6 @@ jobs:
           docker-images: true
           swap-storage: true
 
-      - name: Docker meta:${{ github.ref_name }}
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository_owner }}/moe-llava
-          flavor: |
-            latest=auto
-
       - name: Docker meta:no_model
         id: meta-no-model
         uses: docker/metadata-action@v5
@@ -62,6 +54,14 @@ jobs:
           images: ghcr.io/${{ github.repository_owner }}/moe-llava
           tags: |
             no_model
+
+      - name: Docker meta:${{ github.ref_name }}
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/moe-llava
+          flavor: |
+            latest=auto
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
