@@ -129,13 +129,14 @@ COPY --link --chown=$UID:0 --chmod=775 MoE-LLaVA-hf/LICENSE /licenses/MoE-LLaVA.
 # Copy dependencies and code (and support arbitrary uid for OpenShift best practice)
 # https://docs.openshift.com/container-platform/4.14/openshift_images/create-images.html#use-uid_create-images
 COPY --link --chown=$UID:0 --chmod=775 --from=build /root/.local /home/$UID/.local
+COPY --link --chown=$UID:0 --chmod=775 MoE-LLaVA-hf/predict.py /app/predict.py
 
 ENV PATH="/home/$UID/.local/bin:$PATH"
 ENV PYTHONPATH="/home/$UID/.local/lib/python3.10/site-packages"
 ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64"
 ENV LD_PRELOAD=libtcmalloc.so
 
-WORKDIR /dataset
+WORKDIR /app
 
 VOLUME [ "/dataset" ]
 
@@ -143,7 +144,7 @@ USER $UID
 
 STOPSIGNAL SIGINT
 
-ENTRYPOINT [ "dumb-init", "--", "python3", "moellava.predict", "/dataset" ]
+ENTRYPOINT [ "dumb-init", "--", "python3", "predict", "/dataset" ]
 
 ARG VERSION
 ARG RELEASE
@@ -170,7 +171,7 @@ ARG TORCH_HOME
 ARG HF_HOME
 
 # Preload model
-RUN python3 -c 'from moellava.predict import initialize_moe_model; initialize_moe_model();'
+RUN python3 -c 'from predict import initialize_moe_model; initialize_moe_model();'
 
 ########################################
 # Final stage with model
