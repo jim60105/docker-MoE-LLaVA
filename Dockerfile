@@ -5,7 +5,6 @@ ARG RELEASE=0
 ARG MODEL_PATH=LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384
 
 ARG CACHE_HOME=/.cache
-ARG CONFIG_HOME=/.config
 ARG TORCH_HOME=${CACHE_HOME}/torch
 ARG HF_HOME=${CACHE_HOME}/huggingface
 
@@ -116,7 +115,10 @@ ENV HF_HOME=${HF_HOME}
 
 # Create directories with correct permissions
 RUN install -d -m 775 -o $UID -g 0 /licenses && \
-    install -d -m 775 -o $UID -g 0 ${CACHE_HOME}
+    install -d -m 775 -o $UID -g 0 ${CACHE_HOME}/huggingface/hub \
+    install -d -m 775 -o $UID -g 0 /app
+
+RUN ln -s ${CACHE_HOME}/huggingface/hub /app/cache_dir
 
 # dumb-init
 COPY --link --chown=$UID:0 --chmod=775 --from=ghcr.io/jim60105/static-ffmpeg-upx:7.0-1 /dumb-init /usr/local/bin/
@@ -196,6 +198,8 @@ COPY --link --chown=$UID:0 --chmod=775 --from=load_model ${CACHE_HOME} ${CACHE_H
 
 ARG MODEL_PATH
 ENV MODEL_PATH=${MODEL_PATH}
+
+ENTRYPOINT [ "dumb-init", "--", "python3", "predict.py", "/dataset", "--model-path", "${MODEL_PATH}" ]
 
 ARG VERSION
 ARG RELEASE

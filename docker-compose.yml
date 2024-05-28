@@ -1,6 +1,6 @@
 services:
-  MoE-LLaVA:
-    container_name: MoE-LLaVA
+  moe-llava:
+    container_name: moe-llava
     image: ghcr.io/jim60105/moe-llava:latest
     user: "1001:0"
     build:
@@ -9,9 +9,9 @@ services:
       target: final
       args:
         - UID=1001
-        - MODEL_NAME=LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384
+        - MODEL_PATH=LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384
       cache_from:
-        - ghcr.io/jim60105/MoE-LLaVA:cache
+        - ghcr.io/jim60105/moe-llava:cache
       cache_to:
         - type=inline
     tmpfs:
@@ -19,7 +19,17 @@ services:
     volumes:
       - .:/dataset
       - cache:/.cache
-    entrypoint: [ "dumb-init", "--", "deepspeed", "--num_gpus=1", "moellava.serve.gradio_web_server" ]
+    ports:
+      - "7860:7860"
+    entrypoint:
+      - "dumb-init"
+      - "--"
+      - "deepspeed"
+      - "--num_gpus=1"
+      - "--module"
+      - "moellava.serve.gradio_web_server"
+      - "--model-path"
+      - "LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384"
     deploy:
       resources:
         reservations:
