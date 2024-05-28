@@ -42,7 +42,7 @@ RUN --mount=type=cache,id=pip-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/r
 RUN --mount=type=cache,id=pip-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/root/.cache/pip \
     --mount=source=MoE-LLaVA-hf/requirements.txt,target=requirements.txt \
     pip install -r requirements.txt \
-    dghs-imgutils[gpu] imgutils
+    dghs-imgutils[gpu] imgutils mpi4py
 
 # Install MoE-LLaVA
 RUN --mount=type=cache,id=pip-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/root/.cache/pip \
