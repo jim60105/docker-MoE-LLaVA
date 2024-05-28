@@ -108,6 +108,7 @@ jobs:
           build-args: |
             VERSION=${{ github.ref_name }}
             RELEASE=${{ github.run_number }}
+            MODEL_PATH=LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384
           platforms: linux/amd64
           # Cache to regietry instead of gha to avoid the capacity limit.
           cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/moe-llava:cache

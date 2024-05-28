@@ -9,9 +9,9 @@ Get the Dockerfile at [GitHub](https://github.com/jim60105/docker-MoE-LLaVA), or
 Mount the current directory as `/dataset` and run the script with additional input arguments.
 
 ```bash
-docker run -it -v ".:/dataset" ghcr.io/jim60105/moe-llava [options]
+docker run --gpus all -it -v ".:/dataset" ghcr.io/jim60105/moe-llava [options]
 
-docker run -it -v ".:/dataset" ghcr.io/jim60105/moe-llava --moe --force --caption_style='mixed' --folder_name --modify_prompt
+docker run --gpus all -it -v ".:/dataset" ghcr.io/jim60105/moe-llava --moe --force --caption_style='mixed' --folder_name --modify_prompt
 ```
 
 The `[options]` placeholder should be replaced with the options and [arguments for the script](https://github.com/gesen2egee/MoE-LLaVA-hf/blob/main/predict.py#L354-L362). Check the [original collab notebook](https://github.com/gesen2egee/MoE-LLaVA-hf/blob/main/MoE_LLaVA_jupyter.ipynb) for more information.

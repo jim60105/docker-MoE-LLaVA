@@ -7,3 +7,4 @@ ignored:
   - DL3006 # Always tag the version of an image explicitly
   - DL3018 # Pin versions in apk add. Instead of `apk add <package>` use `apk add <package>=<version>`
   - DL3008 # Pin versions in apt. Instead of `apt-get install <package>` use `apt-get install <package>=<version>`
+  - SC2102 # Ranges can only match single chars (mentioned due to duplicates).

@@ -2,6 +2,7 @@
 ARG UID=1001
 ARG VERSION=EDGE
 ARG RELEASE=0
+ARG MODEL_PATH=LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384
 
 ARG CACHE_HOME=/.cache
 ARG CONFIG_HOME=/.config
@@ -142,7 +143,7 @@ USER $UID
 
 STOPSIGNAL SIGINT
 
-ENTRYPOINT [ "dumb-init", "--", "python3", "predict", "/dataset" ]
+ENTRYPOINT [ "dumb-init", "--", "python3", "predict.py", "/dataset" ]
 
 ARG VERSION
 ARG RELEASE
@@ -165,12 +166,23 @@ LABEL name="jim60105/docker-MoE-LLaVA" \
 ########################################
 FROM no_model as load_model
 
+# RUN mount cache for multi-arch: https://github.com/docker/buildx/issues/549#issuecomment-1788297892
+ARG TARGETARCH
+ARG TARGETVARIANT
+
+# Install requirements
+RUN --mount=type=cache,id=pip-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/root/.cache/pip \
+    pip install -U \
+    huggingface_hub[hf_transfer]
+
+ARG HF_HUB_ENABLE_HF_TRANSFER=1
+
 ARG TORCH_HOME
 ARG HF_HOME
 
 # Preload model
-ARG MODEL_NAME=LanguageBind/MoE-LLaVA-Phi2-2.7B-4e
-RUN python3 -c "from moellava.model.builder import load_pretrained_model; from moellava.mm_utils import get_model_name_from_path; load_pretrained_model('${MODEL_NAME}', None, get_model_name_from_path('${MODEL_NAME}'), device='cpu');"
+ARG MODEL_PATH
+RUN python3 -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='${MODEL_PATH}');"
 
 ########################################
 # Final stage with model
@@ -181,6 +193,9 @@ ARG UID
 
 ARG CACHE_HOME
 COPY --link --chown=$UID:0 --chmod=775 --from=load_model ${CACHE_HOME} ${CACHE_HOME}
+
+ARG MODEL_PATH
+ENV MODEL_PATH=${MODEL_PATH}
 
 ARG VERSION
 ARG RELEASE
