@@ -101,6 +101,9 @@ RUN --mount=type=cache,id=apt-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/v
     libjpeg62 libopenjp2-7 libtiff6 libpng16-16 libwebp7 libwebpmux3 \
     libgoogle-perftools-dev openmpi-bin
 
+# Fix missing libnvrtc.so
+RUN ln -s /usr/local/cuda/lib64/libnvrtc.so.11.2 /usr/local/cuda/lib64/libnvrtc.so
+
 # Create user
 ARG UID
 RUN groupadd -g $UID $UID && \
