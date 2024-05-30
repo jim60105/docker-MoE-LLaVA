@@ -9,7 +9,7 @@ services:
       target: final
       args:
         - UID=1001
-        - MODEL_PATH=LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384
+        - LOW_VRAM=1
       cache_from:
         - ghcr.io/jim60105/moe-llava:cache
       cache_to:

@@ -2,7 +2,7 @@
 ARG UID=1001
 ARG VERSION=EDGE
 ARG RELEASE=0
-ARG MODEL_PATH=LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384
+ARG LOW_VRAM=1
 
 ARG CACHE_HOME=/.cache
 ARG TORCH_HOME=${CACHE_HOME}/torch
@@ -187,8 +187,15 @@ ARG TORCH_HOME
 ARG HF_HOME
 
 # Preload model
-ARG MODEL_PATH
-RUN python3 -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='${MODEL_PATH}');"
+ARG LOW_VRAM
+RUN if [ "$LOW_VRAM" = "1" ]; then \
+    # For low VRAM
+    MODEL_PATH="LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384"; \
+    else \
+    # For VRAM >= 16GB
+    MODEL_PATH="LanguageBind/MoE-LLaVA-Phi2-2.7B-4e"; \
+    fi && \
+    python3 -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='${MODEL_PATH}');"
 
 ########################################
 # Final stage with model
@@ -200,11 +207,10 @@ ARG UID
 ARG CACHE_HOME
 COPY --link --chown=$UID:0 --chmod=775 --from=load_model ${CACHE_HOME} ${CACHE_HOME}
 
-ARG MODEL_PATH
-ENV MODEL_PATH=${MODEL_PATH}
+ARG LOW_VRAM
+ENV LOW_VRAM=${LOW_VRAM}
 
-ENTRYPOINT [ "dumb-init", "--", "/bin/sh", "-c", "python3 predict.py /dataset --model-path ${MODEL_PATH} \"$@\"" ]
-
+ENTRYPOINT [ "dumb-init", "--", "/bin/sh", "-c", "python3 predict.py /dataset --low_vram ${LOW_VRAM} \"$@\"" ]
 
 ARG VERSION
 ARG RELEASE
