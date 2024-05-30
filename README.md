@@ -24,39 +24,50 @@ Install the NVIDIA Container Toolkit with this guide.
 
 ## 📦 Available Pre-built Image
 
-```bash
-docker run --gpus all -it -v ".:/dataset" ghcr.io/jim60105/moe-llava -- [arguments]
-# Example
-docker run --gpus all -it -v ".:/dataset" ghcr.io/jim60105/moe-llava -- --moe --force --caption_style='mixed' --folder_name --modify_prompt
-```
+You can pull the pre-build image which **does not include the models** from the GitHub Container Registry.  
+These images will download the models at runtime.
 
 Mount the current directory as `/dataset` and run the script with additional input arguments.
 
-The `[arguments]` placeholder should be replaced with the [arguments for the script](https://github.com/gesen2egee/MoE-LLaVA-hf/blob/main/predict.py#L354-L362). Check the [original colab notebook](https://github.com/gesen2egee/MoE-LLaVA-hf/blob/main/MoE_LLaVA_jupyter.ipynb) for more information.
-
-> [!NOTE]  
+> [!IMPORTANT]  
 > Remember to prepend `--` before the arguments.
+
+```bash
+docker run --gpus all -it -v ".:/dataset" ghcr.io/jim60105/moe-llava:no_model -- [arguments]
+# Example
+docker run --gpus all -it -v ".:/dataset" ghcr.io/jim60105/moe-llava:no_model -- --moe --force --caption_style='mixed' --folder_name --modify_prompt
+```
+
+The `[arguments]` placeholder should be replaced with the [arguments for the script](https://github.com/gesen2egee/MoE-LLaVA-hf/blob/main/predict.py#L352-L360). Check the [original colab notebook](https://github.com/gesen2egee/MoE-LLaVA-hf/blob/main/MoE_LLaVA_jupyter.ipynb) for more information.
 
 ## ⚡️ Preserve the download cache for the models
 
-The pre-built image does not include models. The models will be downloaded at the runtime.  
-You can mount the `/.cache` to share model caches between containers.
+You can mount the `/.cache` to share model caches between containers.  
+In this way, they will not be repeatedly downloaded every time when image start.
 
 ```bash
-docker run --gpus all -it -v ".:/dataset" -v "moe_cache:/.cache" ghcr.io/jim60105/moe-llava -- --moe --force --caption_style='mixed' --folder_name --modify_prompt
+docker run --gpus all -it -v ".:/dataset" -v "moe_cache:/.cache" ghcr.io/jim60105/moe-llava:no_model -- --moe --force --caption_style='mixed' --folder_name --modify_prompt
 ```
 
-## 🛠️ Building the Image
+## 🛠️ Building the Image *include models*
 
 > [!IMPORTANT]  
 > Clone the Git repository recursively to include submodules:  
 > `git clone --recursive https://github.com/jim60105/docker-MoE-LLaVA.git`
 
-You can build the image which includes the model by specifying the `MODEL_PATH` build argument and targeting to the final stage.
+You can build the image which includes the models by targeting to the final stage.  
+Use the `LOW_VRAM` build argument and to choose the model to preload.
+
+- `LOW_VRAM=1`: Preload the `LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384` model. (Default)
+- `LOW_VRAM=0`: Preload the `LanguageBind/MoE-LLaVA-Phi2-2.7B-4e` model.
 
 ```bash
-docker build -t moe-llava --target final --build-arg MODEL_PATH=LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384 .
+docker build -t moe-llava --target final --build-arg LOW_VRAM=0 .
 ```
+
+> [!CAUTION]  
+> These models are very large!  
+> Blows up the image size to ***30GB*** 😕
 
 ## 📝 LICENSE
 
