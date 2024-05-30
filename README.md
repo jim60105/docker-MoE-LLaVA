@@ -35,7 +35,7 @@ Mount the current directory as `/dataset` and run the script with additional inp
 ```bash
 docker run --gpus all -it -v ".:/dataset" ghcr.io/jim60105/moe-llava:no_model -- [arguments]
 # Example
-docker run --gpus all -it -v ".:/dataset" ghcr.io/jim60105/moe-llava:no_model -- --moe --force --caption_style='mixed' --folder_name --modify_prompt
+docker run --gpus all -it -v ".:/dataset" ghcr.io/jim60105/moe-llava:no_model -- --moe --force --caption_style='mixed' --folder_name --modify_prompt --low_vram
 ```
 
 The `[arguments]` placeholder should be replaced with the [arguments for the script](https://github.com/gesen2egee/MoE-LLaVA-hf/blob/main/predict.py#L352-L360). Check the [original colab notebook](https://github.com/gesen2egee/MoE-LLaVA-hf/blob/main/MoE_LLaVA_jupyter.ipynb) for more information.
@@ -46,10 +46,15 @@ You can mount the `/.cache` to share model caches between containers.
 In this way, they will not be repeatedly downloaded every time when image start.
 
 ```bash
-docker run --gpus all -it -v ".:/dataset" -v "moe_cache:/.cache" ghcr.io/jim60105/moe-llava:no_model -- --moe --force --caption_style='mixed' --folder_name --modify_prompt
+docker run --gpus all -it -v ".:/dataset" -v "moe_cache:/.cache" ghcr.io/jim60105/moe-llava:no_model -- --moe --force --caption_style='mixed' --folder_name --modify_prompt --low_vram
 ```
 
 ## 🛠️ Building the Image *include models*
+
+> [!CAUTION]  
+> These models are really large! They blows up the image size to ***40GB*** 😕  
+> It is recommended to use the no-model image and mount the cache volume.  
+> ![image](https://github.com/jim60105/docker-MoE-LLaVA/assets/16995691/17a58c24-8e2f-4d73-aa77-9495f9a1ccfb)
 
 > [!IMPORTANT]  
 > Clone the Git repository recursively to include submodules:  
@@ -58,16 +63,12 @@ docker run --gpus all -it -v ".:/dataset" -v "moe_cache:/.cache" ghcr.io/jim6010
 You can build the image which includes the models by targeting to the final stage.  
 Use the `LOW_VRAM` build argument and to choose the model to preload.
 
+- (No build-arg): Preload the `LanguageBind/MoE-LLaVA-Phi2-2.7B-4e` model.
 - `LOW_VRAM=1`: Preload the `LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384` model.
-- (Default with no build-arg): Preload the `LanguageBind/MoE-LLaVA-Phi2-2.7B-4e` model.
 
 ```bash
 docker build -t moe-llava --target final --build-arg LOW_VRAM=1 .
 ```
-
-> [!CAUTION]  
-> These models are very large!  
-> Blows up the image size to ***30GB*** 😕
 
 ## 📝 LICENSE
 
