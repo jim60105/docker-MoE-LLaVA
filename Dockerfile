@@ -109,6 +109,11 @@ ARG UID
 RUN groupadd -g $UID $UID && \
     useradd -l -u $UID -g $UID -m -s /bin/sh -N $UID
 
+# PIP install under user home
+ENV PIP_USER="true"
+ENV PIP_NO_WARN_SCRIPT_LOCATION=0
+ENV PIP_DISABLE_PIP_VERSION_CHECK="true"
+
 ARG CACHE_HOME
 ARG TORCH_HOME
 ARG HF_HOME
@@ -118,6 +123,7 @@ ENV HF_HOME=${HF_HOME}
 
 # Create directories with correct permissions
 RUN install -d -m 775 -o $UID -g 0 /licenses && \
+    install -d -m 775 -o $UID -g 0 ${CACHE_HOME} \
     install -d -m 775 -o $UID -g 0 ${CACHE_HOME}/huggingface/hub \
     install -d -m 775 -o $UID -g 0 /app
 
@@ -177,7 +183,8 @@ ARG TARGETARCH
 ARG TARGETVARIANT
 
 # Install requirements
-RUN --mount=type=cache,id=pip-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/root/.cache/pip \
+ARG UID
+RUN --mount=type=cache,id=pip-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/home/$UID/.cache/pip \
     pip install -U \
     huggingface_hub[hf_transfer]
 
@@ -195,6 +202,7 @@ RUN if [ "$LOW_VRAM" = "1" ]; then \
     # For VRAM >= 16GB
     MODEL_PATH="LanguageBind/MoE-LLaVA-Phi2-2.7B-4e"; \
     fi && \
+    echo "Downloading model from huggingface: ${MODEL_PATH}" && \
     python3 -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='${MODEL_PATH}');"
 
 ########################################
