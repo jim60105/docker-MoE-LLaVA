@@ -178,32 +178,26 @@ LABEL name="jim60105/docker-MoE-LLaVA" \
 ########################################
 FROM no_model as load_model
 
-# RUN mount cache for multi-arch: https://github.com/docker/buildx/issues/549#issuecomment-1788297892
 ARG TARGETARCH
 ARG TARGETVARIANT
-
-# Install requirements
 ARG UID
+
+# Enable HF Transfer
+# This library is a power user tool, to go beyond ~500MB/s on very high bandwidth network, where Python cannot cap out the available bandwidth.
+# https://github.com/huggingface/hf_transfer
 RUN --mount=type=cache,id=pip-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/home/$UID/.cache/pip \
     pip install -U \
     huggingface_hub[hf_transfer]
-
 ARG HF_HUB_ENABLE_HF_TRANSFER=1
 
-ARG TORCH_HOME
-ARG HF_HOME
+ARG PYTHONUNBUFFERED=1
 
 # Preload model
+# These are very large models! Blows up the image size to 20GB+
+ARG HF_HOME
 ARG LOW_VRAM
-RUN if [ "$LOW_VRAM" = "1" ]; then \
-    # For low VRAM
-    MODEL_PATH="LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384"; \
-    else \
-    # For VRAM >= 16GB
-    MODEL_PATH="LanguageBind/MoE-LLaVA-Phi2-2.7B-4e"; \
-    fi && \
-    echo "Downloading model from huggingface: ${MODEL_PATH}" && \
-    python3 -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='${MODEL_PATH}');"
+RUN --mount=source=load_model.py,target=load_model.py \
+    python3 load_model.py
 
 ########################################
 # Final stage with model

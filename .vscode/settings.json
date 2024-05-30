@@ -7,6 +7,7 @@
         "Dockerfiles",
         "gesen2egee",
         "gplv",
+        "huggingface",
         "llava"
     ]
 }
