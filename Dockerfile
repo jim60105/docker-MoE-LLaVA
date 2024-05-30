@@ -202,17 +202,20 @@ RUN --mount=source=load_model.py,target=load_model.py \
 ########################################
 # Final stage with model
 ########################################
-FROM no_model as final
+FROM no_model as prepare_final
+
+ENTRYPOINT [ "dumb-init", "--", "/bin/sh", "-c", "python3 predict.py /dataset \"$@\"" ]
+
+FROM no_model as prepare_final_low_vram
+
+ENTRYPOINT [ "dumb-init", "--", "/bin/sh", "-c", "python3 predict.py /dataset --low_vram \"$@\"" ]
+
+FROM prepare_final${LOW_VRAM:+_low_vram} as final
 
 ARG UID
 
 ARG CACHE_HOME
 COPY --link --chown=$UID:0 --chmod=775 --from=load_model ${CACHE_HOME} ${CACHE_HOME}
-
-ARG LOW_VRAM
-ENV LOW_VRAM=${LOW_VRAM}
-
-ENTRYPOINT [ "dumb-init", "--", "/bin/sh", "-c", "python3 predict.py /dataset --low_vram ${LOW_VRAM} \"$@\"" ]
 
 ARG VERSION
 ARG RELEASE
