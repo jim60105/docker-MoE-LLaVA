@@ -193,7 +193,7 @@ ARG HF_HUB_ENABLE_HF_TRANSFER=1
 ARG PYTHONUNBUFFERED=1
 
 # Preload model
-# These are very large models! Blows up the image size to 20GB+
+# These are very large models! Blows up the image size to 30GB+
 ARG HF_HOME
 ARG LOW_VRAM
 RUN --mount=source=load_model.py,target=load_model.py \
