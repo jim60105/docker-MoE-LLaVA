@@ -2,27 +2,48 @@ import os
 import json
 from huggingface_hub import snapshot_download
 
-low_vram = os.getenv('LOW_VRAM', '0') == '1'
+def get_model_path(low_vram):
+    if low_vram:
+        return 'LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384'
+    else:
+        return 'LanguageBind/MoE-LLaVA-Phi2-2.7B-4e'
 
-if low_vram:
-    model_path = 'LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384'
-else:
-    model_path = 'LanguageBind/MoE-LLaVA-Phi2-2.7B-4e'
+def download_model(model_path):
+    print(f"Download model repository {model_path}")
+    local_dir = snapshot_download(repo_id=model_path)
+    print("Done")
+    return local_dir
 
-print(f"Download model repository {model_path}")
+def load_config(local_dir):
+    print("Load config.json")
+    config_path = os.path.join(local_dir, 'config.json')
+    with open(config_path, 'r', encoding='utf-8') as f:
+        config = json.load(f)
+    print(config)
+    return config
 
-local_dir = snapshot_download(repo_id=model_path)
+def download_mm_image_tower(config):
+    mm_image_tower = config['mm_image_tower']
+    print(f"Download mm_image_tower model repository {mm_image_tower}")
+    snapshot_download(repo_id=mm_image_tower)
+    print("Done")
 
-print("Done")
+def download_taggers():
+    tagger_list = ['SmilingWolf/wd-convnext-tagger-v3',
+                   'deepghs/wd14_tagger_with_embeddings',
+                   'alea31415/tag_filtering']
+    for tagger in tagger_list:
+        print(f"Download tagger model repository {tagger}")
+        snapshot_download(repo_id=tagger)
+        print("Done")
 
-print("Load config.json")
-config_path = os.path.join(local_dir, 'config.json')
-with open(config_path, 'r', encoding='utf-8') as f:
-    config = json.load(f)
-print(config)
+def main():
+    low_vram = os.getenv('LOW_VRAM', '0') == '1'
+    model_path = get_model_path(low_vram)
+    local_dir = download_model(model_path)
+    config = load_config(local_dir)
+    download_mm_image_tower(config)
+    download_taggers()
 
-mm_image_tower = config['mm_image_tower']
-
-print(f"Download mm_image_tower model repository {mm_image_tower}")
-snapshot_download(repo_id=mm_image_tower)
-print("Done")
+if __name__ == "__main__":
+    main()
