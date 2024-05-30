@@ -29,13 +29,17 @@ def download_mm_image_tower(config):
     print("Done")
 
 def download_taggers():
-    tagger_list = ['SmilingWolf/wd-convnext-tagger-v3',
-                   'deepghs/wd14_tagger_with_embeddings',
-                   'alea31415/tag_filtering']
-    for tagger in tagger_list:
-        print(f"Download tagger model repository {tagger}")
-        snapshot_download(repo_id=tagger)
-        print("Done")
+    print(f"Download tagger model repository SmilingWolf/wd-convnext-tagger-v3")
+    snapshot_download(repo_id='SmilingWolf/wd-convnext-tagger-v3')
+    print("Done")
+
+    print(f"Download tagger model repository deepghs/wd14_tagger_with_embeddings")
+    snapshot_download(repo_id='deepghs/wd14_tagger_with_embeddings')
+    print("Done")
+
+    print(f"Download tagger dataset repository alea31415/tag_filtering")
+    snapshot_download(repo_id='alea31415/tag_filtering', repo_type='dataset')
+    print("Done")
 
 def main():
     low_vram = os.getenv('LOW_VRAM', '0') == '1'
