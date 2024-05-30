@@ -58,11 +58,11 @@ docker run --gpus all -it -v ".:/dataset" -v "moe_cache:/.cache" ghcr.io/jim6010
 You can build the image which includes the models by targeting to the final stage.  
 Use the `LOW_VRAM` build argument and to choose the model to preload.
 
-- `LOW_VRAM=1`: Preload the `LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384` model. (Default)
-- `LOW_VRAM=0`: Preload the `LanguageBind/MoE-LLaVA-Phi2-2.7B-4e` model.
+- `LOW_VRAM=1`: Preload the `LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384` model.
+- (Default with no build-arg): Preload the `LanguageBind/MoE-LLaVA-Phi2-2.7B-4e` model.
 
 ```bash
-docker build -t moe-llava --target final --build-arg LOW_VRAM=0 .
+docker build -t moe-llava --target final --build-arg LOW_VRAM=1 .
 ```
 
 > [!CAUTION]  
