@@ -30,7 +30,7 @@ ARG PIP_DISABLE_PIP_VERSION_CHECK="true"
 RUN --mount=type=cache,id=apt-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/var/cache/apt \
     --mount=type=cache,id=aptlists-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/var/lib/apt/lists \
     apt-get update && apt-get install -y --no-install-recommends \
-    libopenmpi-dev openmpi-bin
+    libopenmpi-dev
 
 # Install large requirements
 RUN --mount=type=cache,id=pip-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/root/.cache/pip \
@@ -90,7 +90,7 @@ RUN --mount=type=cache,id=apt-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/v
     # Installing the whole CUDA typically increases the image size by approximately **8GB**.
     # To decrease the image size, we opt to install only the necessary libraries.
     # Here is the package list for your reference: https://developer.download.nvidia.com/compute/cuda/repos/debian11/x86_64
-    # !If you experience any related issues, replace the following line with `cuda-11-8` to obtain the complete CUDA package.
+    #! If you experience any related issues, replace the following line with `cuda-11-8` to obtain the complete CUDA package.
     cuda-cudart-11-8=${NV_CUDA_CUDART_VERSION} libcusparse-11-8 libcurand-11-8 libcufft-11-8 cuda-nvrtc-11-8
 
 # Install runtime dependencies
@@ -109,7 +109,9 @@ ARG UID
 RUN groupadd -g $UID $UID && \
     useradd -l -u $UID -g $UID -m -s /bin/sh -N $UID
 
-# PIP install under user home
+# pip install under user home
+# Because the script uses pip so I left it in the final image.
+# In fact, all dependencies have been installed in the Dockerfile and pip should not be used.
 ENV PIP_USER="true"
 ENV PIP_NO_WARN_SCRIPT_LOCATION=0
 ENV PIP_DISABLE_PIP_VERSION_CHECK="true"
@@ -127,6 +129,7 @@ RUN install -d -m 775 -o $UID -g 0 /licenses && \
     install -d -m 775 -o $UID -g 0 ${CACHE_HOME}/huggingface/hub \
     install -d -m 775 -o $UID -g 0 /app
 
+# The script also uses ./cache_dir for huggingface cache
 RUN ln -s ${CACHE_HOME}/huggingface/hub /app/cache_dir
 
 # dumb-init
@@ -193,7 +196,7 @@ ARG HF_HUB_ENABLE_HF_TRANSFER=1
 ARG PYTHONUNBUFFERED=1
 
 # Preload model
-# These are very large models! Blows up the image size to 30GB+
+#! These are very large models! Blows up the image size to 40GB
 ARG HF_HOME
 ARG LOW_VRAM
 RUN --mount=source=load_model.py,target=load_model.py \
@@ -204,16 +207,16 @@ RUN --mount=source=load_model.py,target=load_model.py \
 ########################################
 FROM no_model as prepare_final
 
-ENTRYPOINT [ "dumb-init", "--", "/bin/sh", "-c", "python3 predict.py /dataset \"$@\"" ]
-
 FROM no_model as prepare_final_low_vram
 
+# Change the entrypoint to use low_vram
 ENTRYPOINT [ "dumb-init", "--", "/bin/sh", "-c", "python3 predict.py /dataset --low_vram \"$@\"" ]
 
 FROM prepare_final${LOW_VRAM:+_low_vram} as final
 
 ARG UID
 
+# Copy the model
 ARG CACHE_HOME
 COPY --link --chown=$UID:0 --chmod=775 --from=load_model ${CACHE_HOME} ${CACHE_HOME}
 
@@ -221,3 +224,8 @@ ARG VERSION
 ARG RELEASE
 LABEL version=${VERSION} \
     release=${RELEASE}
+
+########################################
+# Place it at the end to serve as the default final stage
+########################################
+FROM no_model as final_no_model
