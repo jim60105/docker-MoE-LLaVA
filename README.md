@@ -52,8 +52,9 @@ docker run --gpus all -it -v ".:/dataset" -v "moe_cache:/.cache" ghcr.io/jim6010
 ## 🛠️ Building the Image *include models*
 
 > [!CAUTION]  
-> These models are really large! They blows up the image size to ***40GB*** 😕  
-> It is recommended to use the no-model image and mount the cache volume.  
+> These models are extremely big! They inflate the image size to a whopping 40GB 😕  
+> It is too time-consuming to build and I suggest avoiding it.  
+> Please use the `no_model` image and attaching the `/.cache` volume as instructed earlier.  
 > ![image](https://github.com/jim60105/docker-MoE-LLaVA/assets/16995691/17a58c24-8e2f-4d73-aa77-9495f9a1ccfb)
 
 > [!IMPORTANT]  
