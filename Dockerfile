@@ -136,7 +136,7 @@ RUN ln -s ${CACHE_HOME}/huggingface/hub /app/cache_dir
 COPY --link --chown=$UID:0 --chmod=775 --from=ghcr.io/jim60105/static-ffmpeg-upx:7.0-1 /dumb-init /usr/local/bin/
 
 # Copy licenses (OpenShift Policy)
-COPY --link --chown=$UID:0 --chmod=775 LICENSE /licenses/LICENSE
+COPY --link --chown=$UID:0 --chmod=775 LICENSE /licenses/Dockerfile.LICENSE
 COPY --link --chown=$UID:0 --chmod=775 MoE-LLaVA-hf/LICENSE /licenses/MoE-LLaVA.LICENSE
 
 # Copy dependencies and code (and support arbitrary uid for OpenShift best practice)
@@ -178,17 +178,29 @@ LABEL name="jim60105/docker-MoE-LLaVA" \
 
 ########################################
 # load_model stage
+#! These are very large models! Blows up the image size to 40GB
 ########################################
-FROM no_model as load_model
+FROM python:3.10 as load_model
 
+# RUN mount cache for multi-arch: https://github.com/docker/buildx/issues/549#issuecomment-1788297892
 ARG TARGETARCH
 ARG TARGETVARIANT
-ARG UID
+
+WORKDIR /source
+
+# Install under /root/.local
+ARG PIP_USER="true"
+ARG PIP_NO_WARN_SCRIPT_LOCATION=0
+ARG PIP_ROOT_USER_ACTION="ignore"
+ARG PIP_NO_COMPILE="true"
+ARG PIP_DISABLE_PIP_VERSION_CHECK="true"
 
 # Enable HF Transfer
 # This library is a power user tool, to go beyond ~500MB/s on very high bandwidth network, where Python cannot cap out the available bandwidth.
 # https://github.com/huggingface/hf_transfer
+ARG UID
 RUN --mount=type=cache,id=pip-$TARGETARCH$TARGETVARIANT,sharing=locked,target=/home/$UID/.cache/pip \
+    pip install -U --force-reinstall pip==23.3 setuptools==69.5.1 wheel && \
     pip install -U \
     huggingface_hub[hf_transfer]
 ARG HF_HUB_ENABLE_HF_TRANSFER=1
@@ -196,7 +208,6 @@ ARG HF_HUB_ENABLE_HF_TRANSFER=1
 ARG PYTHONUNBUFFERED=1
 
 # Preload model
-#! These are very large models! Blows up the image size to 40GB
 ARG HF_HOME
 ARG LOW_VRAM
 RUN --mount=source=load_model.py,target=load_model.py \
@@ -209,7 +220,7 @@ FROM no_model as prepare_final
 
 FROM no_model as prepare_final_low_vram
 
-# Change the entrypoint to use low_vram
+# Change the entrypoint to use --low_vram
 ENTRYPOINT [ "dumb-init", "--", "/bin/sh", "-c", "python3 predict.py /dataset --low_vram \"$@\"" ]
 
 FROM prepare_final${LOW_VRAM:+_low_vram} as final
