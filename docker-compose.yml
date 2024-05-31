@@ -6,10 +6,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: final
+      target: final_no_model
       args:
         - UID=1001
-        - LOW_VRAM=1
+        # - LOW_VRAM=1
       cache_from:
         - ghcr.io/jim60105/moe-llava:cache
       cache_to:
@@ -17,7 +17,7 @@ services:
     tmpfs:
       - /tmp
     volumes:
-      - .:/dataset
+      - ./dataset:/dataset
       - cache:/.cache
     # Gradio is launched with `demo.launch(share=True)`, so this is not working.
     # Needs to listen on host 0.0.0.0 for Docker networking.
@@ -29,8 +29,13 @@ services:
       - "deepspeed"
       - "--num_gpus=1"
       - "/app/serve/gradio_web_server.py"
+      # Arguments for `gradio` server:
+      # https://github.com/gesen2egee/MoE-LLaVA-hf/blob/4ca6c809e3d541a70f02abac14c3b755323c90e1/moellava/serve/gradio_web_server.py#L101-L104
       - "--model-path"
+      # LOW_VRAM model:
       - "LanguageBind/MoE-LLaVA-StableLM-1.6B-4e-384"
+      # Default model:
+      # - "LanguageBind/MoE-LLaVA-Phi2-2.7B-4e-384"
     deploy:
       resources:
         reservations:
@@ -41,3 +46,4 @@ services:
 
 volumes:
   cache:
+    name: moe-llava-cache
